@@ -38,8 +38,8 @@ local TweenService = game:GetService("TweenService")
   guiyyy:Destroy()
 
 local Library = loadstring(game:HttpGet("https://pastebin.com/raw/tBnCD9d8"))()
-local Window = Library.CreateLib("🔳Avtor Hub🔳", "LightTheme")
-
+local Window = Library.CreateLib("🔳 Avtor Hub🔳", "LightTheme")
+ 
  
 local PlrTab = Window:NewTab("Main")
 local PlrSection = PlrTab:NewSection("Main")
@@ -52,12 +52,8 @@ PlrSection:NewSlider("🔝Jump Power🔝", "Set you JumpPower", 250, 50, functio
     game.Players.LocalPlayer.Character.Humanoid.JumpPower = s
 end)
 
-PlrSection:NewToggle("🔁Fov Changer🔁", "ToggleInfo", function(state)
-    if state then
-        game.Workspace.CurrentCamera.FieldOfView = 120
-    else
-        game.Workspace.CurrentCamera.FieldOfView = 80
-    end
+PlrSection:NewSlider("🔁Fov Changer🔁", "change your fov player", 120, 80, function(s)
+    game.Workspace.CurrentCamera.FieldOfView = s
 end)
 
 PlrSection:NewToggle("♨️OFF Gravity♨️", "ToggleInfo", function(state)
@@ -80,6 +76,15 @@ PlrSection:NewButton("❌Antifling OFF❌", "Telekinesis (cars and other),", fun
 		loadstring(game:HttpGet('https://raw.githubusercontent.com/H20CalibreYT/SystemBroken/main/AntiFling'))()
 end)
 
+PlrSection:NewToggle("🦸Super-Human🦸", "Go Fast and Jump High", function(state)
+	if state then
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 120
+		game.Players.LocalPlayer.Character.Humanoid.JumpPower = 120
+	else
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+		game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
+	end
+end)
 
 PlrSection:NewButton("✔Tp to click✔ (item)", "Teleport", function()
     mouse = game.Players.LocalPlayer:GetMouse()
@@ -121,6 +126,768 @@ dofullbright()
 Light.LightingChanged:Connect(dofullbright)
 end)
 
+local TargetTab = Window:NewTab("Target")
+local TargetSection = TargetTab:NewSection("Target")
+
+local Player = game.Players.LocalPlayer
+local function findPlayer(playerName)
+  local players = game.Players:GetPlayers()
+  for _, player in pairs(players) do
+    if string.find(string.lower(player.Name), string.lower(playerName), 1, true) then
+      return player
+    end
+  end
+
+  return nil
+end
+
+local toggleFling = false
+local toggleStand = false
+local toggleView = false
+local toggleBenx = false
+
+local playerName
+local Target
+local DisplayTarget
+
+local function ToggleFling(bool)
+	task.spawn(function()
+		if bool then
+			local RVelocity = nil
+			repeat
+				pcall(function()
+					RVelocity = Player.Character.HumanoidRootPart.Velocity 
+					Player.Character.HumanoidRootPart.Velocity = Vector3.new(math.random(-200,200),-25000,math.random(-200,200))
+					game:GetService("RunService").RenderStepped:wait()
+					Player.Character.HumanoidRootPart.Velocity = RVelocity
+				end)
+				game:GetService("RunService").Heartbeat:wait()
+			until toggleFling == false
+		end
+	end)
+end
+
+local function PlayAnim(id,time,speed)
+	pcall(function()
+		Player.Character.Animate.Disabled = false
+		local hum = Player.Character.Humanoid
+		local animtrack = hum:GetPlayingAnimationTracks()
+		for i,track in pairs(animtrack) do
+			track:Stop()
+		end
+		Player.Character.Animate.Disabled = true
+		local Anim = Instance.new("Animation")
+		Anim.AnimationId = "rbxassetid://"..id
+		local loadanim = hum:LoadAnimation(Anim)
+		loadanim:Play()
+		loadanim.TimePosition = time
+		loadanim:AdjustSpeed(speed)
+		loadanim.Stopped:Connect(function()
+			Player.Character.Animate.Disabled = false
+			for i, track in pairs (animtrack) do
+        		track:Stop()
+    		end
+		end)
+	end)
+end
+
+local function StopAnim()
+	Player.Character.Animate.Disabled = false
+    local animtrack = Player.Character.Humanoid:GetPlayingAnimationTracks()
+    for i, track in pairs (animtrack) do
+        track:Stop()
+    end
+end
+
+local labelTarget = TargetSection:NewLabel("FullName: "..Player.Name.." | DisplayName: "..Player.DisplayName)
+
+TargetSection:NewButton("👆 Click Target 👆","CLick player to select target", function()
+   local GetTargetTool = Instance.new("Tool")
+	GetTargetTool.Name = "ClickTarget"
+	GetTargetTool.RequiresHandle = false
+	GetTargetTool.TextureId = "rbxassetid://2716591855"
+	GetTargetTool.ToolTip = "Select Target"
+
+	local function ActivateTool()
+		local root = Player.Character.HumanoidRootPart
+		local hit = Player:GetMouse().Target
+		local person = nil
+		if hit and hit.Parent then
+			if hit.Parent:IsA("Model") then
+				person = game.Players:GetPlayerFromCharacter(hit.Parent)
+			elseif hit.Parent:IsA("Accessory") then
+				person = game.Players:GetPlayerFromCharacter(hit.Parent.Parent)
+			end
+			if person then
+            Target = person.Name
+            DisplayTarget = person.DisplayName
+            labelTarget:UpdateLabel("FullName: "..Target.." | DisplayName: "..DisplayTarget)
+			end
+		end
+	end
+
+	GetTargetTool.Activated:Connect(function()
+		ActivateTool()
+	end)
+	GetTargetTool.Parent = Player.Backpack
+end)
+
+TargetSection:NewTextBox("🔍 Find Target 🔍", "Enter player to use esp", function(target)
+   playerName = target
+   local similarPlayer = findPlayer(playerName)
+   if similarPlayer then
+      if similarPlayer.Name ~= Player.Name then
+         Target = similarPlayer.Name
+         DisplayTarget = similarPlayer.DisplayName
+         labelTarget:UpdateLabel("FullName: "..Target.." | DisplayName: "..DisplayTarget)
+         local CoreGui = game:GetService("StarterGui")
+         CoreGui:SetCore("SendNotification", {
+             Title = similarPlayer.Name,
+             Text = "Name: "..similarPlayer.DisplayName,
+             Icon = "rbxthumb://type=AvatarHeadShot&id="..Player.Parent[Target].CharacterAppearanceId.."&w=100&h=100",
+             Duration = 5,
+             Callback = AllowRunServiceBind,
+         })
+      end
+   else
+      Target = nil
+      labelTarget:UpdateLabel("Player not found")
+      local CoreGui = game:GetService("StarterGui")
+      CoreGui:SetCore("SendNotification", {
+         Title = "Player not found",
+         Text = "Name: Invalid",
+         Icon = "rbxthumb://type=AvatarHeadShot&id="..Player.CharacterAppearanceId.."&w=100&h=100",
+         Duration = 5,
+         Callback = AllowRunServiceBind,
+      })
+   end
+ end)
+
+local labelTarget = TargetSection:NewLabel("Target Function")
+
+local labelTarget = TargetSection:NewLabel("For All Games")
+
+TargetSection:NewButton("📕 Copy FullName 📕","Копирует полное имя игрока", function()
+   if DisplayTarget ~= nil then 
+      setclipboard(DisplayTarget)
+   end
+end)
+
+TargetSection:NewButton("📒 Copy DisplayName 📒","Копирует дислей имя игрока", function()
+   if Target ~= nil then 
+      setclipboard(Target)
+   end
+end)
+
+TargetSection:NewButton("✔ Teleport Target ✔","Toggle to view player", function()
+   if Target ~= nil then
+      Player.Character.HumanoidRootPart.CFrame = Player.Parent[Target].Character.HumanoidRootPart.CFrame
+   end
+end)
+
+TargetSection:NewButton("👁️ View Target 👁️","Toggle to view player", function()
+   if toggleView == false then
+      if Target ~= nil then
+         toggleView = true
+         game.Workspace.CurrentCamera.CameraSubject = Player.Parent[Target].Character.Humanoid
+      end
+   else
+      toggleView = false
+      game.Workspace.CurrentCamera.CameraSubject = Player.Character.Humanoid
+   end
+end)
+
+TargetSection:NewButton("🧲 Fling Target 🧲","Toggle to fling player", function()
+   if toggleFling == false then
+      if Target ~= nil then
+         toggleFling = true
+         local OldPos = Player.Character.HumanoidRootPart.Position
+			ToggleFling(true)
+			repeat 
+            task.wait()
+				pcall(function()
+					Player.Character.HumanoidRootPart.CFrame = Player.Parent[Target].Character.HumanoidRootPart.CFrame
+				end)
+				task.wait()
+			until toggleFling == false
+			Player.Character.HumanoidRootPart.CFrame = OldPos
+         ToggleFling(false)
+      end
+   else
+      toggleFling = false
+   end
+end)
+
+
+TargetSection:NewButton("👥 Stand Head Target 👥","Toggle to stand head your player", function()
+   if toggleBenx == false then
+      if Target ~= nil then
+         toggleBenx = true
+         PlayAnim(591872667,0,1)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,5,0.0)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleBenx == false
+         StopAnim()
+      end
+   else
+      toggleBenx = false
+   end
+end)
+
+
+TargetSection:NewButton("🛶 Platform Player Target 🛶","Toggle to platform player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(59126674,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,-2,0)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(1.58, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+local labelTarget = TargetSection:NewLabel("R15 Target")
+
+
+TargetSection:NewButton("👤 Stand Target (R15) 👤","Toggle to stand player", function()
+   if toggleStand == false then
+      if Target ~= nil then
+         toggleStand = true
+         PlayAnim(13823324057,4,0)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3,1,0)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleStand == false
+         StopAnim()
+      end
+   else
+      toggleStand = false
+   end
+end)
+
+TargetSection:NewButton("👤 Stand Target V2 (R15) 👤","Toggle to stand player", function()
+   if toggleStand == false then
+      if Target ~= nil then
+         toggleStand = true
+         PlayAnim(10714389396,1,0)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3.5,0,0.5)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleStand == false
+         StopAnim()
+      end
+   else
+      toggleStand = false
+   end
+end)
+
+
+TargetSection:NewButton("👤 Stand Target V3 (R15) 👤","Toggle to stand player", function()
+   if toggleStand == false then
+      if Target ~= nil then
+         toggleStand = true
+         PlayAnim(12507085924,5,0)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3.5,3,0)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleStand == false
+         StopAnim()
+      end
+   else
+      toggleStand = false
+   end
+end)
+
+
+
+TargetSection:NewButton("👤 Stand Target V4 (R15) 👤","Toggle to stand player", function()
+   if toggleStand == false then
+      if Target ~= nil then
+         toggleStand = true
+         PlayAnim(10714347256,4,0)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3.5,1,1)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleStand == false
+         StopAnim()
+      end
+   else
+      toggleStand = false
+   end
+end)
+
+
+TargetSection:NewButton("👙 Bang Target (R15) 👙","Toggle to bang player", function()
+   if toggleBenx == false then
+      if Target ~= nil then
+         toggleBenx = true
+         PlayAnim(5918726674,0,1)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,0,1.1)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleBenx == false
+         StopAnim()
+      end
+   else
+      toggleBenx = false
+   end
+end)
+
+TargetSection:NewButton("⚠️ Face Bang Target (R15) ⚠️","Toggle to bang player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(5918726674,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,2,-1.5)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(180), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+
+TargetSection:NewButton("🐶 Doggy Target (R15) 🐶","Toggle to doggy player", function()
+   if toggleBenx == false then
+      if Target ~= nil then
+         toggleBenx = true
+         PlayAnim(13694096724,3.4,0)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,-0.5,0)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleBenx == false
+         StopAnim()
+      end
+   else
+      toggleBenx = false
+   end
+end)
+
+
+TargetSection:NewButton("🎆 Dance Head Target (R15) 🎆","Toggle to dance player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(10214311282,1,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,5,0)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+
+TargetSection:NewButton("🧙 Chill Fly Target (R15) 🧙","Toggle to chill fly player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(15549124879,4,0)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3,6,-5)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+TargetSection:NewButton("🎩 Dance WTF Target (R15) 🎩","Toggle to Dance WTF player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(15609995579,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,2,-4)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(3.16, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+TargetSection:NewButton("🪐 Aura Head Target (R15) 🪐","Toggle to Aura Head your player", function()
+   if toggleBenx == false then
+      if Target ~= nil then
+         toggleBenx = true
+         PlayAnim(12507085924,5,0)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,7,0.0)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleBenx == false
+         StopAnim()
+      end
+   else
+      toggleBenx = false
+   end
+end)
+
+local labelTarget = TargetSection:NewLabel("R6 Target")
+
+
+TargetSection:NewButton("👙 Bang Target (R6) 👙","Toggle to bang player", function()
+   if toggleBenx == false then
+      if Target ~= nil then
+         toggleBenx = true
+         PlayAnim(148840371,0,6)
+         repeat
+            pcall(function()
+               local root = Player.Parent[Target].Character.HumanoidRootPart
+               Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,0,1.1)
+               Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            end)
+            task.wait()
+         until toggleBenx == false
+         StopAnim()
+      end
+   else
+      toggleBenx = false
+   end
+end)
+
+
+TargetSection:NewButton("⛔ Face Bang Target (R6) ⛔","Toggle to bang player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(148840371,0,6)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,1.5,-1.5)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(180), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+TargetSection:NewButton("🎒 Backpack Target (R6) 🎒","Toggle to bang player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(178130996,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,0,1)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(180), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+TargetSection:NewButton("🔰 Walk WTH Target (R6) 🔰","Toggle to walk WTF player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(180426354,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3,2,-4)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(3.16, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+TargetSection:NewButton("🐶 Head Pet Target (R6) 🐶","Toggle to Head Pet player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(121572214,3,0)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-3,-5.5,3)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+TargetSection:NewButton("🎩 Dance WTH Target (R6) 🎩","Toggle to walk WTF player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(27789359,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,2,-4)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(3.16, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+TargetSection:NewButton("💧 Face Mastur (R6) 💧","Toggle to Face Mastur player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(54144120,0,17)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,2.5,-2.5)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(180), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+TargetSection:NewButton("🪑 Head Sit (R6) 🪑","Toggle to head sit player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(178130996,0,1)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(0,3.5,0.6)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+
+TargetSection:NewButton("🦰 Headless Target (R6) 🦰","Toggle to Headless Target player", function()
+   if toggleBenx == false then
+   if Target ~= nil then
+      toggleBenx = true
+      PlayAnim(35154961,3,0)
+      repeat
+         pcall(function()
+            local root = Player.Parent[Target].Character.HumanoidRootPart
+            Player.Character.HumanoidRootPart.CFrame = root.CFrame * CFrame.new(-1.2,-1.1,3.1)
+            Player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+            -- Поворот на 90 градусов по часовой стрелке
+            Player.Character.HumanoidRootPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(0), 0)
+         end)
+         task.wait()
+      until toggleBenx == false
+      StopAnim()
+   end
+else
+   toggleBenx = false
+end
+end)
+
+local TargetSection = TargetTab:NewSection("Esp")
+TargetSection:NewLabel("Settings Esp")
+
+local ESPcolor = Color3.fromRGB(255,0,0)
+local EspTransparency = 0.5
+
+TargetSection:NewColorPicker("🟥 ESP Color 🟥","Set you esp color",ESPcolor, function(color)
+  for i, player in pairs(game.Players:GetPlayers()) do
+    if player.Character:FindFirstChild("Esp") then
+      if player ~= game.Players.LocalPlayer then
+          player.Character:FindFirstChild("Esp").FillColor = color
+      end
+    end
+  end
+  ESPcolor = color
+end)
+
+TargetSection:NewSlider("⬜ ESP Transparency ⬜", "Set you transparency", 100, 1, function(s)
+  s = s * 0.01
+  wait(0.05)
+  for i, player in pairs(game.Players:GetPlayers()) do
+    if player.Character:FindFirstChild("Esp") then
+      if player ~= game.Players.LocalPlayer then
+          player.Character:FindFirstChild("Esp").FillTransparency = s
+      end
+    end
+  end
+  EspTransparency = s
+end)
+
+TargetSection:NewLabel("Enabled / Disabled")
+
+TargetSection:NewButton("🟩 ESP Target 🟩", "Click player to use esp target", function()
+   if Target ~= nil then
+      if Player.Parent[Target] then
+         if not Player.Parent[Target].Character:FindFirstChild("Esp") then
+            local esp = Instance.new("Highlight", Player.Parent[Target].Character)
+            esp.FillColor = ESPcolor
+            esp.FillTransparency = EspTransparency
+            esp.Enabled = true
+            esp.Name = "Esp"
+         else
+            Player.Parent[Target].Character:FindFirstChild("Esp"):Destroy()
+         end
+      end
+   end
+end)
+
+TargetSection:NewToggle("🟦 ESP All 🟦", "Toggle Esp to use all", function(toggle)
+ if toggle then
+  _G.ESPbyTami4ka = true
+  ESP = game:GetService("RunService").RenderStepped:Connect(function()
+    for i, player in pairs(game.Players:GetPlayers()) do
+      if not player.Character:FindFirstChild("Esp") then
+        if player ~= game.Players.LocalPlayer then
+            local esp = Instance.new("Highlight", player.Character)
+            esp.FillColor = ESPcolor
+            esp.FillTransparency = EspTransparency
+            esp.Enabled = true
+            esp.Name = "Esp"
+            wait(0.05)
+        end
+      end
+    end
+  end)
+  repeat task.wait() until _G.ESPbyTami4ka == false
+  ESP:Disconnect()
+ else
+  _G.ESPbyTami4ka = false
+  for i, player in pairs(game.Players:GetPlayers()) do
+    if player.Character:FindFirstChild("Esp") then
+      if player ~= game.Players.LocalPlayer then
+          player.Character:FindFirstChild("Esp"):Destroy()
+      end
+    end
+  end
+ end
+end)
+
 local OthersTab = Window:NewTab("Dev Scripts")
 local OthersSection = OthersTab:NewSection("Some Scripts Need To Function In The Real Game")
 OthersSection:NewTextBox("💾Script Executer💾","Execute Scripts", function(txt)
@@ -152,12 +919,44 @@ OthersSection:NewButton("📠Dex 2.0.0📠", "Better then dex 4 if your in mobil
 loadstring(game:HttpGet("https://cdn.wearedevs.net/scripts/Dex%20Explorer.txt"))()
 end)
 
-OthersSection:NewButton("🔌Dex 4🔌", "dark mode i guess", function()
-loadstring(game:HttpGet('https://raw.githubusercontent.com/loglizzy/dexV4/main/main.lua'))()
+
+OthersSection:NewButton("🟪Fluxus Executor🟪", "🟪Fluxus Executor🟪", function()
+
+loadstring(game:HttpGet("https://scriptblox.com/raw/Universal-Script-Fluxus-Coral-ReMake-Beta-by-AnyaDev-8562"))()
+end)
+
+OthersSection:NewButton("🟥Arceus X Executor🟥", "🟥Arceus X Executor🟥", function()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/AZYsGithub/chillz-workshop/main/Arceus%20X%20V3"))()
+end)
+
+OthersSection:NewButton("⬛KRNL Executor⬛", "⬛KRNL Executor⬛", function()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/wtfplayer/redemption/main/krnlnoui.lua"))()
+end)
+
+OthersSection:NewButton("🟥Codex Executor🟥", "🟥Codex Executor🟥", function()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FurkyYT/stuff/main/mainAndroid"))()
+end)
+
+OthersSection:NewButton("🟧Vega Executor🟧", "🟧Vega Executor🟧", function()
+
+executecode(game:HttpGet("https://gitlab.com/marsqq/vegax4/-/raw/main/UI"))
+end)
+
+OthersSection:NewButton("🟨Evon Executor🟨", "🟨Evon Executor🟨", function()
+
+executecode(game:HttpGet("https://raw.githubusercontent.com/SkieAdmin/EvonAndroidGUI/main/EvonRBLX.lua"))
+end)
+
+OthersSection:NewButton("⬜Trigon Executor⬜", "⬜Trigon Executor⬜", function()
+
+executecode(game:HttpGet("https://raw.githubusercontent.com/relbaldski/bald/main/baldscript.lua"))
 end)
 
 
-local OthersTab = Window:NewTab("Universall")
+local OthersTab = Window:NewTab("Universal")
 local OthersSection = OthersTab:NewSection("Universall")
  
 OthersSection:NewButton("👑Infinite yield👑", "👑Infinite yield👑", function()
@@ -383,15 +1182,29 @@ loadstring(_G.boomboxb.Client.Source)()
 loadstring(_G.boomboxb.Server.Source)() --the original scripts made by roblox with minor changes.
 end)
 
-OthersSection:NewButton("💨RTX Map💨", "💨RTX Map💨", function()
+OthersSection:NewButton("🔅Realistic 3RD Camera🔅", "🔅Realistic 3RD Camera🔅", function()
 
-loadstring(game:HttpGet(('https://pastebin.com/raw/rtJcDBKk'),true))()
+loadstring(game:HttpGet('https://pastebin.com/raw/BG3994qZ'))()
 end)
 
+OthersSection:NewButton("⚙️Universal Tas Maker⚙️", "⚙️Universal Tas Maker⚙️", function()
+
+loadstring(game:HttpGet('https://pastebin.com/raw/8rrPXjVs'))()
+end)
+
+OthersSection:NewButton("✨Shaiders Gui✨", "✨Shaiders Gui✨", function()
+
+loadstring(game:HttpGet(('https://pastefy.app/xXkUxA0P/raw'),true))()
+end)
 
 OthersSection:NewButton("💨Avtor Scripts Skybox💨", "💨Avtor Scripts Skybox💨", function()
 
-loadstring(game:HttpGet(('https://pastebin.com/raw/6pRjMJtC'),true))()
+sky = Instance.new("Sky",game:GetService("Lighting"))
+sky.SkyboxBk = "http://www.roblox.com/asset/?id=14890616326"
+sky.SkyboxFt = "http://www.roblox.com/asset/?id=14890616326"
+sky.SkyboxLf = "http://www.roblox.com/asset/?id=14890616326"
+sky.SkyboxRt = "http://www.roblox.com/asset/?id=14890616326"
+sky.SkyboxUp = "http://www.roblox.com/asset/?id=14890616326"
 end)
 
 OthersSection:NewButton("💨Float Tool💨", "💨Float Tool💨", function()
@@ -423,42 +1236,9 @@ OthersSection:NewButton("🖱️Universal Cursor🖱️", "🖱️Universal Curs
    loadstring(game:HttpGet(('https://pastefy.app/VPqgV9IN/raw'),true))()
 end)
 
-local OthersTab = Window:NewTab("Exploits Gui")
-local OthersSection = OthersTab:NewSection("Exploits Gui")
+OthersSection:NewButton("👁️‍🗨️Universal Fly Camera👁️‍🗨️", "❤️‍🔥RTX❤️‍🔥", function()
 
-OthersSection:NewButton("🟪Fluxus Executor🟪", "🟪Fluxus Executor🟪", function()
-
-loadstring(game:HttpGet("https://scriptblox.com/raw/Universal-Script-Fluxus-Coral-ReMake-Beta-by-AnyaDev-8562"))()
-end)
-
-OthersSection:NewButton("🟥Arceus X Executor🟥", "🟥Arceus X Executor🟥", function()
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AZYsGithub/chillz-workshop/main/Arceus%20X%20V3"))()
-end)
-
-OthersSection:NewButton("⬛KRNL Executor⬛", "⬛KRNL Executor⬛", function()
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/wtfplayer/redemption/main/krnlnoui.lua"))()
-end)
-
-OthersSection:NewButton("🟥Codex Executor🟥", "🟥Codex Executor🟥", function()
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/FurkyYT/stuff/main/mainAndroid"))()
-end)
-
-OthersSection:NewButton("🟧Vega Executor🟧", "🟧Vega Executor🟧", function()
-
-executecode(game:HttpGet("https://gitlab.com/marsqq/vegax4/-/raw/main/UI"))
-end)
-
-OthersSection:NewButton("🟨Evon Executor🟨", "🟨Evon Executor🟨", function()
-
-executecode(game:HttpGet("https://raw.githubusercontent.com/SkieAdmin/EvonAndroidGUI/main/EvonRBLX.lua"))
-end)
-
-OthersSection:NewButton("⬜Trigon Executor⬜", "⬜Trigon Executor⬜", function()
-
-executecode(game:HttpGet("https://raw.githubusercontent.com/relbaldski/bald/main/baldscript.lua"))
+loadstring(game:HttpGet(('https://pastefy.app/9CDN9Kaj/raw'),true))()
 end)
 
 local OthersTab = Window:NewTab("Animation R15")
@@ -780,7 +1560,7 @@ OthersSection:NewButton("🟥Amogus🟥", "🟥Amogus🟥", function()
 loadstring(game:HttpGet(('https://pastebin.com/raw/CdDXY6uy'),true))()
 end)
 
-OthersSection:NewButton("🟪Fake Dominus🟪", "🟪Fake Dominus🟪", function()
+OthersSection:NewButton("🟪Fake Dominus (R6)🟪", "🟪Fake Dominus🟪", function()
 
 --{{Made by Avtor}}--
 
@@ -811,6 +1591,8 @@ TrainMesh.Scale = Vector3.new(1, 1, 1)
 TrainMesh.MeshId = "rbxassetid://4887144927"
 TrainMesh.TextureId = "rbxassetid://4887144975"
 end)
+
+local OthersSection = OthersTab:NewSection("🔰Visual Accessories🔰")
 
 
 OthersSection:NewButton("Blue Fire Horns", "Its No FE Blue Fire Horns", function()
@@ -2275,11 +3057,20 @@ OthersSection:NewButton("⬛Atomic Hub⬛", "⬛Atomic Hub⬛", function()
 loadstring(game:HttpGet('https://raw.githubusercontent.com/n0kc/AtomicHub/main/Script.lua'))()
 end)
 
+OthersSection:NewButton("🏿Shakars Hub🏿", "🏿Shakars Hub🏿", function()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/shakar60/moonsecV3/main/bido.ty"))()
+end)
+
 OthersSection:NewButton("🟪Malware Hub🟪", "🟪Malware Hub🟪", function()
 
 loadstring(game:HttpGet('https://gist.githubusercontent.com/H20CalibreYT/462f6e6236a9371130f113def6549bb1/raw/'))()
 end)
 
+OthersSection:NewButton("🔳Punkz OG🔳", "🔳Punkz OG🔳", function()
+
+ loadstring(game:HttpGet('https://raw.githubusercontent.com/blackheartedcurse/punkz-Scripts/main/punkzOG.lua'))()
+end)
 
 local OthersTab = Window:NewTab("For Games")
 local OthersSection = OthersTab:NewSection("For Games")
@@ -2328,9 +3119,9 @@ OthersSection:NewButton("🚪Doors🚪", "🚪Doors🚪", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/FFJ1/Roblox-Exploits/main/scripts/Loader.lua"))
 end)
 
-OthersSection:NewButton("🗡Murder Mystery 2🗡", "🗡Murder Mystery 2🗡", function()
+OthersSection:NewButton("🗡Murder Mystery 2 (RSO) 🗡", "🗡Murder Mystery 2🗡", function()
 
-loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Drifter0507/GUIS/main/MURDER%20MYSTERY%202", true))();
+loadstring(game:HttpGet("https://raw.githubusercontent.com/RSOscrip/Murder-mystery-2/main/RSO_script"))()
 end)
 
 OthersSection:NewButton("🐝Bee Swarm Simulator🐝", "🐝Bee Swarm Simulator🐝", function()
@@ -2350,16 +3141,20 @@ end)
 
 OthersSection:NewButton("🍎Blox Fruits🍎", "🍎Blox Fruits🍎", function()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Yatsuraa/Yuri/main/Winterhub_V2.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/REDzHUB/BloxFruits/main/redz9999"))()
 end)
 
 local CreatorTab = Window:NewTab("ℹ️Infoℹ️")
 local CreatorSection = CreatorTab:NewSection("Credits to Avtor1zaTion")
-local CreatorSection = CreatorTab:NewSection("Version 1.9")
+local CreatorSection = CreatorTab:NewSection("Version 2.0")
 
 CreatorSection:NewButton("Copy YT Avtor Scripts Link", "Youtube Avtor Scripts", function()
 
 setclipboard("https://youtube.com/@avtorscripts?si=Pbp9QsfrcDZ5b-nO")
+end)
+CreatorSection:NewButton("Copy TG Avtor Scripts Link", "Telegram Avtor Scripts", function()
+
+setclipboard("https://t.me/AvtorScripts")
 end)
 
 wait(0.1)
@@ -2370,3 +3165,4 @@ stroke.Thickness = 3
 while wait() do local hue = tick() % 15 / 15
  local color = Color3.fromHSV(hue,1,1)     stroke.Color = color
 end
+
