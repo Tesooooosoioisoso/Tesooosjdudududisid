@@ -37,7 +37,7 @@ local TweenService = game:GetService("TweenService")
   task.wait(1.5)
   guiyyy:Destroy()
 
-local Library = loadstring(game:HttpGet("https://pastebin.com/raw/tBnCD9d8"))()
+local Library = loadstring(game:HttpGet("https://pastebin.com/raw/nifXmiRj"))()
 local Window = Library.CreateLib("🔳 Avtor Hub🔳", "LightTheme")
  
  
